@@ -1,27 +1,31 @@
 module Day04 (day04a, day04b) where
 
 import Data.List (transpose)
+import qualified Data.Map as M
+import qualified Data.Set as S
 
 day04a :: IO ()
 day04a = do
-  input <- readFile "input/Day04.txt"
-  let ls = lines input
-  let withCoords = addCoordinates ls
-  let rollPositions = map fst $ onlyRollCoords withCoords
-  let numNeighbours = map (countNeighbours rollPositions) rollPositions
-  let accessible = (length . filter (< 4)) numNeighbours
+  rollPositions <- prepareInput04
+  let numNeighbours = S.map (countNeighbours rollPositions . makeNeighbours) rollPositions
+  let accessible = (S.size . S.filter (< 4)) numNeighbours
 
   print accessible
 
 day04b :: IO ()
 day04b = do
+  rollPositions <- prepareInput04
+  let inititalRollNumber = S.size rollPositions
+  let removed = removeAll rollPositions
+  print $ inititalRollNumber - length removed
+
+prepareInput04 :: IO (S.Set (Int, Int))
+prepareInput04 = do
   input <- readFile "input/Day04.txt"
   let ls = lines input
   let withCoords = addCoordinates ls
   let rollPositions = map fst $ onlyRollCoords withCoords
-  let inititalRollNumber = length rollPositions
-  let removed = removeAll rollPositions
-  print $ inititalRollNumber - length removed
+  return $ S.fromList rollPositions
 
 makeCoordinates :: Int -> Int -> [(Int, Int)]
 makeCoordinates x y = (,) <$> [1 .. x] <*> [1 .. y]
@@ -32,13 +36,34 @@ addCoordinates ls = zip coordlist chars
     coordlist = makeCoordinates ((length . head) ls) (length ls)
     chars = (concat . transpose) ls
 
-countNeighbours grid (x, y) =
-  length $ filter (`elem` grid) [(a, b) | a <- [x - 1 .. x + 1], b <- [y - 1 .. y + 1], (a, b) /= (x, y)]
+countNeighbours :: S.Set (Int, Int) -> [(Int, Int)] -> Int
+countNeighbours grid neighbours =
+  length $ filter (`S.member` grid) neighbours
 
+makeNeighbours (x, y) = 
+  [(a, b) | a <- [x - 1 .. x + 1], b <- [y - 1 .. y + 1], (a, b) /= (x, y)]
+
+onlyRollCoords :: [(a, Char)] -> [(a, Char)]
 onlyRollCoords ls = filter (\x -> snd x == '@') ls
 
-removeOnce rollPositions = filter ((>= 4) . countNeighbours rollPositions) rollPositions
-
-removeAll rollPositions
-  | all ((>= 4) . countNeighbours rollPositions) rollPositions = rollPositions
-  | otherwise = removeAll $ filter ((>= 4) . countNeighbours rollPositions) rollPositions
+removeAll :: S.Set (Int, Int) -> S.Set (Int, Int)
+removeAll rollPos =
+  go
+    rollPos
+    ( M.fromList $
+        zip
+          (S.toList rollPos)
+          (map makeNeighbours $ S.toList rollPos)
+    )
+  where
+    go rollPositions neighboursdict
+      | length rollPositions == length moreThan4Neighbours = rollPositions
+      | otherwise = go moreThan4Neighbours neighboursdict
+      where
+        moreThan4Neighbours =
+          S.filter
+            ( (>= 4)
+                . countNeighbours rollPositions
+                . flip (M.findWithDefault []) neighboursdict
+            )
+            rollPositions
