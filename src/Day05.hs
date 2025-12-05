@@ -1,7 +1,7 @@
 module Day05(day05) where 
 import Data.List.Split(splitOn)
 import Data.List(sort)
-import Data.Bits (Bits(xor))
+
 
 day05 :: IO ()
 day05 = do
@@ -9,9 +9,11 @@ day05 = do
     let splitOnBlank = splitOn "\n\n" input
     let ranges = map (list2tuple . map read . splitOn "-") $ lines $ head splitOnBlank
     let ingredients = map read $ lines $ last splitOnBlank 
-   
+    let mergedRanges = mergeRanges ranges 
+    putStrLn "Day 5 part 1:"
 
-    print $ length $ filter (inAnyRange ranges) ingredients
+    print $ length $ filter (inAnyRange mergedRanges) ingredients
+    putStrLn  "Day 5 part 2:"
     print $ countInRanges $ mergeRanges ranges
 
 mergeRanges :: Ord a => [(a, a)] -> [(a, a)]
@@ -33,6 +35,8 @@ inRange c (x,y) = c >= x && c<= y
 inAnyRange :: [(Int,Int)] -> Int -> Bool
 inAnyRange  xs c = any   (inRange c) xs
 
+countInRange :: Num a => (a, a) -> a
 countInRange (x,y) = 1 + y-x 
 
+countInRanges :: [(Int, Int)] -> Int
 countInRanges = sum . map countInRange

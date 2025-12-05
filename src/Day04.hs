@@ -44,7 +44,7 @@ makeNeighbours (x, y) =
   [(a, b) | a <- [x - 1 .. x + 1], b <- [y - 1 .. y + 1], (a, b) /= (x, y)]
 
 onlyRollCoords :: [(a, Char)] -> [(a, Char)]
-onlyRollCoords ls = filter (\x -> snd x == '@') ls
+onlyRollCoords  = filter (\x -> snd x == '@') 
 
 removeAll :: S.Set (Int, Int) -> S.Set (Int, Int)
 removeAll rollPos =

@@ -1,4 +1,4 @@
-module Day01 (day01, day01ex, day01a) where
+module Day01 (day01a, day01ex, day01b) where
 
 import Data.Bifunctor (bimap)
 import Data.List (foldl', scanl')
@@ -8,20 +8,11 @@ data Direction = L | R deriving (Read, Show)
 day01a :: IO ()
 day01a = solveA "input/day01.txt"
 
-day01 :: IO ()
-day01 = do
-  input <- readFile "input/day01.txt"
-
-  (print . countZeros . rotateAll . map makeRotations . lines) input
-
-  (print . countZeroCrossings . rotateZeroCrossedAll . map makeRotations . lines) input
+day01b :: IO ()
+day01b = solveB "input/day01.txt"
 
 day01ex :: IO ()
-day01ex = do
-  input <- readFile "input/example01.txt"
-
-  (print . countZeros . rotateAll . map makeRotations . lines) input
-  (print . countZeroCrossings . rotateZeroCrossedAll . map makeRotations . lines) input
+day01ex = solveA "input/example01.txt"
 
 makeRotations :: (Read b, Read d) => [Char] -> (b, d)
 makeRotations s = bimap read read $ splitAt 1 s
@@ -53,4 +44,21 @@ countZeroCrossings :: [(a, Integer)] -> Integer
 countZeroCrossings = sum . map (abs . snd)
 
 solveA :: FilePath -> IO ()
-solveA fname = readFile fname >>= (print . countZeros . rotateAll . map makeRotations . lines)
+solveA fname =
+  readFile fname
+    >>= ( print
+            . countZeros
+            . rotateAll
+            . map makeRotations
+            . lines
+        )
+
+solveB :: FilePath -> IO ()
+solveB fname =
+  readFile fname
+    >>= ( print
+            . countZeroCrossings
+            . rotateZeroCrossedAll
+            . map makeRotations
+            . lines
+        )
