@@ -1,7 +1,6 @@
 module Day06 (day06a, day06b) where
 
 import Data.List (transpose)
-import Text.Parsec (parseTest)
 import Text.Regex
 
 day06a :: IO ()
@@ -27,13 +26,23 @@ day06b = do
   let parts = transpose ls
   let problems = separateOn (mkRegex "^[ ]+$") parts
   let functions = map (return . last . head) problems
-  let numbers = map (map read . concatMap  words . (\x-> (init . head) x : tail x)) problems
+  let numbers =
+        map
+          ( map read
+              . concatMap words
+              . (\x -> (init . head) x : tail x)
+          )
+          problems
   let answers = zipWith applyFunction functions numbers
-  print $ sum  answers
+  print $ sum answers
 
 separateOn :: Regex -> [String] -> [[String]]
 separateOn _ [] = []
-separateOn regex xs = takeWhile (noRegexMatch regex) xs : separateOn regex (tailOrEmpty (dropWhile (noRegexMatch regex) xs))
+separateOn regex xs =
+  takeWhile (noRegexMatch regex) xs
+    : separateOn
+      regex
+      (tailOrEmpty (dropWhile (noRegexMatch regex) xs))
 
 noRegexMatch :: Regex -> String -> Bool
 noRegexMatch regex str = matchRegex regex str == Nothing
