@@ -19,21 +19,6 @@ day07a = do
   putStrLn "part 2"
   print timecount
 
-freeBeamTravel ::
-  (Eq a2, Eq a1, Num a1) =>
-  [(a2, a1)] ->
-  [a1] ->
-  (([a1], [(a2, a1)]), Int)
-freeBeamTravel ls ys = ((nub $ ysRemaining ++ newBeams, rest), length beamsSplit)
-  where
-    found = dropWhile ((`notElem` ys) . snd) ls
-    xline = fst $ head found
-    rest = dropWhile ((== xline) . fst) found
-    line = takeWhile ((== xline) . fst) found
-    lineys = map snd line
-    ysRemaining = filter (`notElem` lineys) ys
-    beamsSplit = filter (`elem` lineys) ys
-    newBeams = concat $ makeNewYs beamsSplit
 
 makeNewYs :: (Num a) => [a] -> [[a]]
 makeNewYs ys = [[y - 1, y + 1] | y <- ys]
@@ -41,10 +26,13 @@ makeNewYs ys = [[y - 1, y + 1] | y <- ys]
 beamTravel [] _ count = count
 beamTravel ls ys count = beamTravel newlist newys newcount
   where
+    ysRemaining = fst $ fst travelOnce
+    beamsSplit = snd  travelOnce
+    newBeams = concat $ makeNewYs beamsSplit
     newlist = snd $ fst travelOnce
-    newys = fst $ fst travelOnce
-    newcount = count + snd travelOnce
-    travelOnce = freeBeamTravel ls ys
+    newys = nub $ ysRemaining ++ newBeams
+    newcount = count + length  (snd travelOnce)
+    travelOnce = timesplitTravel ls ys
 
 makeTaggedYs :: (Num a) => a -> [(a, a)]
 makeTaggedYs y = [(y, y - 1), (y, y + 1)]
